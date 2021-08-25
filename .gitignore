@@ -1,0 +1,9 @@
+*.pyc
+*~
+*egg*
+build/*
+dist/*
+__pycache__/*
+distribute*.gz
+distribute*.egg
+.pytest_cache/*
