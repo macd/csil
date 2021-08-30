@@ -11,20 +11,20 @@ import time
 # move into ABC9 at the start and back to old ABC at the end of
 # the script.
 scripts = {
-    "area1"   : "&get; &st; &dch; &nf; &put",
-    "area2"   : "&get; &st; &synch2; &nf; &put",
-    "area3"   : "&get; &st; &syn2; &synch2; &nf; &put",
-    "delay1"  : "&get; &st; &if -g -K 6; &dch; &nf; &put",
-    "delay2"  : "&get; &st; &if -g -K 6; &synch2; &nf; &put",
-    "delay3"  : "&get; &st; &syn2; &if -g -K 6; &synch2; &nf; &put",
-    "simple"  : "strash; dch; map -B 0.9",
-    "oldarea" : "strash; dch; amap",
+    "area1"   : "&get;&st;&dch;&nf;&put",
+    "area2"   : "&get;&st;&synch2;&nf;&put",
+    "area3"   : "&get;&st;&syn2;&synch2;&nf;&put",
+    "delay1"  : "&get;&st;&if -g -K 6;&dch;&nf;&put",
+    "delay2"  : "&get;&st;&if -g -K 6; &synch2; &nf; &put",
+    "delay3"  : "&get;&st;&syn2;&if -g -K 6;&synch2;&nf;&put",
+    "simple"  : "strash;dch;map -B 0.9",
+    "oldarea" : "strash;dch;amap",
 }
 
 # if initialize or finalize is == "", then it will be skipped
 util_scripts = {
-    "initialize" : "&get; &st; &dch -x; &nf; &put",
-    "finalize"   : "buffer -c; topo; stime -c; upsize -c; dnsize -c"
+    "initialize" : "&get;&st;&dch -x;&nf;&put",
+    "finalize"   : "buffer -c;topo;stime -c;upsize -c;dnsize -c"
 }
 
 # Run the scatter shot of scripts on the design hierarchy
@@ -130,15 +130,22 @@ class Abc_scatter:
         return (gates, area, delay)
 
     # Only need to run one design here, but with multiple scripts
-    def get_scatter_df(self, fn="results.csv"):
-        results_df = pd.DataFrame(columns=["design", "script", "iteration",
+    def get_scatter_df(self, fn="input.blif", rn="results.csv"):
+        results_df = pd.DataFrame(columns=["design", "file", "script", "iteration",
                                            "cpu time", "gates", "area",
-                                           "delay"])
+                                           "delay", "Pareto"])
 
-        df = self.shotgun("input.blif")
+        df = self.shotgun(fn)
         results_df = results_df.append(df)
-        results_df.to_csv(fn)
+        results_df.to_csv(rn)
         return results_df
+
+
+# Given a single file and a library, run all the scripts * iterations on it and
+# generate the results.csv file as well as keep all the generated blifs'
+def splat_one(infile, libr="/home/macd/libs/sky130_fd_sc_hs__tt_025C_1v80.lib"):
+    sctx = Abc_scatter(libr=libr)
+    sc_df = sctx.get_scatter_df(fn=infile)
 
 
 # Given a abc_topdir, run all the scripts for a set number of iterations on
@@ -161,3 +168,14 @@ def splat(abc_topdir=None):
             sc_df = sctx.get_scatter_df()
 
     os.chdir(olddir)    
+
+
+def dump_script(script, iters):
+    scr = util_scripts["initialize"]
+    for i in range(iters):
+        scr = scr + ";" + scripts[script]
+    scr = scr + ";" + util_scripts["finalize"]
+    p = re.sub(";", "\n", scr)
+    print(p)
+    return p
+        

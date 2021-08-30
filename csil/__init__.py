@@ -26,4 +26,4 @@ __version__ = "0.0.1"
    
 from .csil import ADesign
 from .utils import plt_csv, iselect
-from .splat import splat
+from .splat import splat_one, splat, dump_script
