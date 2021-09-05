@@ -11,19 +11,19 @@ import time
 # move into ABC9 at the start and back to old ABC at the end of
 # the script.
 scripts = {
-    "area1"   : "&get;&st;&dch;&nf;&put",
-    "area2"   : "&get;&st;&synch2;&nf;&put",
-    "area3"   : "&get;&st;&syn2;&synch2;&nf;&put",
-    "delay1"  : "&get;&st;&if -g -K 6;&dch;&nf;&put",
-    "delay2"  : "&get;&st;&if -g -K 6; &synch2; &nf; &put",
-    "delay3"  : "&get;&st;&syn2;&if -g -K 6;&synch2;&nf;&put",
+    "area1"   : "&get -n;&st;&dch;&nf;&put",
+    "area2"   : "&get -n;&st;&synch2;&nf;&put",
+    "area3"   : "&get -n;&st;&syn2;&synch2;&nf;&put",
+    "delay1"  : "&get -n;&st;&if -g -K 6;&dch;&nf;&put",
+    "delay2"  : "&get -n;&st;&if -g -K 6; &synch2; &nf; &put",
+    "delay3"  : "&get -n;&st;&syn2;&if -g -K 6;&synch2;&nf;&put",
     "simple"  : "strash;dch;map -B 0.9",
     "oldarea" : "strash;dch;amap",
 }
 
 # if initialize or finalize is == "", then it will be skipped
 util_scripts = {
-    "initialize" : "&get;&st;&dch -x;&nf;&put",
+    "initialize" : "&get -n;&st;&dch -x;&nf;&put",
     "finalize"   : "buffer -c;topo;stime -c;upsize -c;dnsize -c"
 }
 
