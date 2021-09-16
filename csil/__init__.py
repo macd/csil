@@ -24,6 +24,6 @@ name = "csil"
 
 __version__ = "0.0.1"
    
-from .csil import ADesign
+from .csil import CDesign
 from .utils import plt_csv, iselect
 from .splat import splat_one, splat, dump_script

@@ -92,20 +92,21 @@ def get_pareto(V, min_idxs, max_idxs):
 
 # Plot the results contained in the CSV file "fn".  Circle the design points
 # that are on the Pareto Front.
-def plt_csv(fn):
+def plt_csv(fn, do_cpu=False):
     sc_df = pd.read_csv(fn)
     for d in set(sc_df['design']):
         drows = sc_df.loc[sc_df['design'] == d]
-        plot_it(d, drows, "iteration", "cpu time")
         plot_it(d, drows, "area", "delay")
+        if do_cpu:
+            plot_it(d, drows, "iteration", "cpu time")
 
 
 # Just a quick and dirty hack to see if we get useful results, _but_ it is 
 # problematic for how do we weigh area vs delay?  Here, we scale such that
 # (max_delay - min_delay) = 1 and (max_area  - min_area)  = 1  and then
-# take the min distance to llh corner a real solution will involve using 
+# take the min distance to llh corner. A real solution will involve using 
 # only designs on the pareto front to meet the timing constraints with a 
-# minimum area.  Probably a backtracking algorithm.
+# minimum area.  Probably using a backtracking algorithm.
 def get_best(sc_df):
     area  = sc_df["area"].to_numpy()
     delay = sc_df["delay"].to_numpy()
@@ -125,7 +126,8 @@ def get_best(sc_df):
             
     return min_idx
 
-# by copying the best implementation to output.blif, it will be used by reintegrate
+# by copying the best implementation to output.blif, it will be used by
+# reintegrate
 def choose_impl(fn):
     sc_df = pd.read_csv(fn)
     idx = get_best(sc_df)
