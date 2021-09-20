@@ -15,7 +15,7 @@ Note that we currently use forked version of both [ABC](https://github.com/macd/
 ### Setup Notes
 
 The Yosys Python wrapper module, must be installed and visible to
-Python. You will have to build Yosys with 'ENABLE_PYOSYS := 1' (In
+Python. You will have to build Yosys with `ENABLE_PYOSYS := 1` (In
 order to do this you will need to have libboost-python-dev installed.)
 This will make the libyosys.so library. You can use the Yosys Makefile
 to install it, but I prefer to do that manually in my local anaconda3
@@ -23,7 +23,7 @@ tree. If you want to do that, then in the directory
 ~/anaconda3/lib/python3.8/site-packages make a directory named
 pyosys. Copy libyosys.so (should be in the top level Yosys directory
 after a successful build) to that directory. Also copy the file
-__init__.py from the yosys/misc directory to that location as
+`__init__.py` from the yosys/misc directory to that location as
 well. The Yosys vendored abc, now named yosys-abc, needs to be copied
 to the ~/anaconda3/bin directory, if you intend to use that. Finally,
 you need to have the contents of yosys/share copied to a system
