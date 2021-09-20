@@ -9,6 +9,24 @@ from glob import glob
 import shutil
 
 
+def plot_pareto(d, df):
+    fig, ax1 = plt.subplots(1, 1)
+    fig.set_figheight(7)
+    fig.set_figwidth(9)
+
+    # Mark the Pareto optimal points for the area vs delay plot
+    p = get_pareto(df[["area", "delay"]].to_numpy(), [0, 1], [])
+    plt.plot(p[:, 0], p[:, 1], ".")
+        
+    ax1.set_xlabel("area")
+    ax1.set_ylabel("delay")
+    ax1.legend()
+    ax1.set_title(f"Pareto area vs delay for {d}")
+    nm = os.path.splitext(os.path.basename(d))[0] + "_pareto.png"
+    fig.savefig(nm)
+    plt.close(fig)
+
+
 def plot_it(d, df, x, y):
     fig, ax1 = plt.subplots(1, 1)
     fig.set_figheight(7)
@@ -97,6 +115,7 @@ def plt_csv(fn, do_cpu=False):
     for d in set(sc_df['design']):
         drows = sc_df.loc[sc_df['design'] == d]
         plot_it(d, drows, "area", "delay")
+        plot_pareto(d, drows)
         if do_cpu:
             plot_it(d, drows, "iteration", "cpu time")
 

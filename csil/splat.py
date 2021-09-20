@@ -10,7 +10,12 @@ import time
 # These assumes we live in the old ABC space so we explicitly
 # move into ABC9 at the start and back to old ABC at the end of
 # the script.
+#    
 scripts = {
+    "lazyIBM"   : "rec_start3 ~/libs/lib6_filter.aig; rec_ps3; strash; balance; rw; rf; balance; rw; rw -z; balance; rf -z; rw -z; balance; if -y -K 6; strash; balance; rw; rf; balance; rw; rw -z; balance; rf -z; rw -z; balance; strash; balance; rw; rf; balance; rw; rw -z; balance; rf -z; rw -z; balance; if -y -K 6; strash; balance; rw; rf; balance; rw; rw -z; balance; rf -z; rw -z; balance; &get -n; &dch -x; &nf; &put",
+
+    "lazyABC"   : "strash; rec_add3; balance; rec_add3; dc2; rec_add3; if -K 8; bidec; strash; rec_add3; dc2; rec_add3; if -g -K 6; strash; rec_add3; &get -n; &dch -x; &nf; &put",
+    
     "area1"   : "&get -n;&st;&dch;&nf;&put",
     "area2"   : "&get -n;&st;&synch2;&nf;&put",
     "area3"   : "&get -n;&st;&syn2;&synch2;&nf;&put",
