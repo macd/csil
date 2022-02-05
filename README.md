@@ -5,11 +5,12 @@ This is definitely WIP.
 A Python platform for experiments with [Yosys](https://github.com/YosysHQ/yosys),
 [ABC](https://github.com/berkeley-abc/abc) and [OpenSTA](https://github.com/The-OpenROAD-Project/OpenSTA)
 
-We also use the very nice Python package for parsing Liberty files 
+### Dependencies
+
+We use the very nice Python package for parsing Liberty files 
 [liberty-parser](https://codeberg.org/tok/liberty-parser)
 
-Note that we currently use forked version of both [ABC](https://github.com/macd/abc) and 
-[Yosys](https://github.com/macd/yosys) and the main version of OpenSTA
+Note that we currently use forked version of [ABC](https://github.com/macd/abc) and that provides a Python wrapper. We also use a Yosys plugin [orlo](https://github.com/macd/yosys-openroad-plugins) that must be installed first and also a working version of OpenSTA must accessable
 
 
 ### Setup Notes
