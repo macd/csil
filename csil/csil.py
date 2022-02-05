@@ -6,18 +6,12 @@ import random
 import string
 import subprocess
 import sys
-import ABC
+import abc
 import liberty
 from liberty.parser import parse_liberty
 from pyosys import libyosys as ys
 
 
-# So a hack. This assumes that we have abc executable in top dir of abc install
-ABC_EXE =  os.path.split(ABC.__file__)[0] + "/../abc"
-if not os.path.exists(ABC_EXE):
-    ABC_EXE = None
-
-    
 lib_cache = {}
 
 # Process a liberty library down to a dict of cell names and areas
@@ -48,9 +42,7 @@ def randtag(n):
 
 # These can take options as a string argument.  Also can generally take a
 # selection too, but then that is tacked on to the end of the options string
-funcs = ["abc",
-         "abc_reint",
-         "add",
+funcs = ["add",
          "aigmap",         
          "alumacc",
          "assertpmux",
@@ -121,6 +113,8 @@ funcs = ["abc",
          "opt_muxtree",
          "opt_reduce",
          "opt_share",
+         "orlo",           # Note: the orlo plugin must be already loaded
+         "orlo_reint",
          "paramap",
          "peepopt",
          "pmux2shiftx",
@@ -191,6 +185,7 @@ def _make_YDesign_class():
     def __init__(self):
         self.ys = ys
         self.ydesign = self.ys.Design()
+        self.ys.run_pass("plugin -i orlo", self.ydesign)
 
     # Run a generic Yosys command/pass that is not already wrapped
     def run(self, cmd):
@@ -248,20 +243,24 @@ class CDesign(YDesign):
             else:
                 self.libinfo = make_lib(self.liberty)
 
+        self.checkpoints = {}
+        
         # Some default SDC values for the lazy 
         self.clock = "clk"
         self.period = 1.0
         self.input_delay = 0.0
         self.output_delay = 0.0
+        # an elaborated but unmapped design
+        self.elab = None
 
     def __repr__(self):
         r  = "Design file:  " + self.design_file
         r += f"\n    {str(self.ydesign)}"
         r += "\n    Liberty file  : " + self.liberty
-        r += "\n    clock         : " + self.clock
-        r += "\n    period        : " + self.period
-        r += "\n    input delay   : " + self.input_delay
-        r += "\n    output delay  : " + self.output_delay
+        r += "\n    clock         : " + str(self.clock)
+        r += "\n    period        : " + str(self.period)
+        r += "\n    input delay   : " + str(self.input_delay)
+        r += "\n    output delay  : " + str(self.output_delay)
         return r
 
     # Make an sdc file suitable for OpenSTA given a fully mapped gate level verilog file
@@ -279,7 +278,7 @@ class CDesign(YDesign):
             fd.write(f"report_checks")
         return sdc_file
 
-    # Most likely the ports have been bit blasted, so check for name "a[1]" etc, if needed
+    # Possibly the ports have been bit blasted, so check for name "a[1]" etc, if needed
     def is_port(self, name):
         # remember all Yosys names begin with "\", and we add that here
         id_name = self.ys.IdString("\\" + name)
@@ -288,15 +287,27 @@ class CDesign(YDesign):
             return True
         return False
     
-    #  Create a copy of the design including all metadata
+    #  Create a copy of the design including all metadata.  We need Yosys to 
+    #  make a new copy as well.
+    #  NOTE: To state the obvious, this returns the copy.
     def copy(self):
-        pass
+        other = copy.copy(self)
+        other.ydesign = other.ys.Design()
+        tmp_name = randtag(10)
+        self.ys.run_pass(f"design -save {tmp_name}", self.ydesign)
+        other.ys.run_pass(f"design -load {tmp_name}", other.ydesign)
+        self.ys.run_pass(f"design -delete {tmp_name}", self.ydesign)
+        return other
 
+    def checkpoint(self, name):
+        self.checkpoints[name] = self.copy()
+        return self
+    
     # Shell out to OpenSTA
     def report_checks(self, cleanup=True):
         tag = randtag(15)
         vfile = tag + ".v"
-        self.write_verilog(vfile, "-simple-lhs")
+        self.write_verilog(f"-simple-lhs {vfile}")
         sdc_file = self.make_sdc(vfile)
 
         print("timing design with OpenSTA")
@@ -315,6 +326,55 @@ class CDesign(YDesign):
             print("Cleaning up temp files\n")
             os.remove(vfile)
             os.remove(sdc_file)
-            
+
+        # Note this does not return self so you cannot "pipe" report_checks
         return (delay, slack)
-    
+
+    def elaborate(self, retime=False):
+        self.hierarchy("-auto-top")
+        if retime:
+            self.scratchpad("-set abc.dff true")
+        self.synth()
+        self.opt("-purge")
+        self.elab = self.copy()
+        return self
+
+    def unmap(self):
+        if self.elab == None:
+            print("Error: no design to unmap")
+        else:
+            # just to note that bad things happed when I "del self.ydesign"
+            self.design("-reset")  
+            self.ydesign = self.elab.ydesign 
+            self.elab = self.copy()
+        return self
+
+    # use the default abc script just to set up the directories and input files
+    # TODO: replace default script with an even smaller one
+    def setup(self):
+        cached = self.copy()
+        
+        # map full adders
+        #self.extract_fa()
+        #self.techmap("-map cells_adders.v")  # where should we have cells_adders.v?
+        #self.techmap()
+        #self.opt("-fast -purge")
+
+        # map latches
+        #self.techmap(f"-map -lib cells_latch.v")
+
+        # Map flip flops
+        self.dfflibmap(f"-liberty {self.liberty}")
+        self.abc(f"-liberty {self.liberty} -nocleanup -abc_topdir={os.getcwd()}")
+        abc_dir = self.scratchpad("-get abc.dir")
+        
+        self.design("-reset")
+        self.ydesign = cached.ydesign
+        self.scratchpad(f"-set abc.dir {abc_dir}")
+        cached.ydesign = None
+        del cached
+        return self
+
+    def splat(self):
+        pass
+        #abc_dir = self.scr
