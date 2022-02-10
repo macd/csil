@@ -18,12 +18,13 @@
 ## along with this program. If not, see <http://www.gnu.org/licenses/>.
 ## 
 """
-Don MacMillen Aug. 2021
+Don MacMillen Feb. 2022
 """
 name = "csil"
 
 __version__ = "0.0.1"
-   
-from .csil import CDesign
+
+from .liberty import make_lib
+from .cdesign import CDesign
 from .utils import plt_csv, iselect
 from .splat import splat_one, splat, dump_script
