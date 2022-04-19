@@ -7,7 +7,7 @@ import pandas as pd
 import matplotlib.pylab as plt
 from glob import glob
 import shutil
-
+from enum import Enum
 
 def plot_pareto(d, df):
     fig, ax1 = plt.subplots(1, 1)
@@ -125,7 +125,7 @@ def plt_csv(fn, do_cpu=False):
 # (max_delay - min_delay) = 1 and (max_area  - min_area)  = 1  and then
 # take the min distance to llh corner. A real solution will involve using 
 # only designs on the pareto front to meet the timing constraints with a 
-# minimum area.  Probably using a backtracking algorithm.
+# minimum area.
 def get_best(sc_df):
     area  = sc_df["area"].to_numpy()
     delay = sc_df["delay"].to_numpy()
@@ -145,21 +145,42 @@ def get_best(sc_df):
             
     return min_idx
 
+
+def get_fastest(sc_df):
+    delay = sc_df["delay"].to_numpy()
+    return np.argmin(delay)
+
+
+def get_smallest(sc_df):
+    delay = sc_df["area"].to_numpy()
+    return np.argmin(delay)
+
+class ImplMode(Enum):
+    FASTEST  = 1
+    SMALLEST = 2
+    OPTIMAL  = 3
+
 # by copying the best implementation to output.blif, it will be used by
 # reintegrate
-def choose_impl(fn):
+def choose_impl(fn, mode):
     sc_df = pd.read_csv(fn)
-    idx = get_best(sc_df)
-    print("Best impl: ", sc_df["design"][idx])
-    shutil.copy(sc_df["design"][idx], "output.blif")
+    if mode == ImplMode.FASTEST:
+        idx = get_fastest(sc_df)
+    elif mode == ImplMode.SMALLEST:
+        idx = get_smallest(sc_df)
+    else:
+        idx = get_best(sc_df)
+
+    #print("idx: ", idx, "row: ", sc_df.loc[[idx]])
+    print("Choosing impl: ", sc_df["file"][idx])
+    shutil.copy(sc_df["file"][idx], "output.blif")
         
 
-def iselect(abc_dir=None):
+def impl_select(abc_dir=None, mode=ImplMode.FASTEST):
     mdirs = [os.path.abspath(dr) if os.path.isdir(dr) else None for dr in glob(f"./{abc_dir}/*")]
     olddir = os.getcwd()
     for dr in mdirs:
         os.chdir(dr)
-        choose_impl("results.csv")        
+        choose_impl("results.csv", mode)
 
     os.chdir(olddir)
-        

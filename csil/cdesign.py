@@ -7,33 +7,7 @@ import string
 import subprocess
 import sys
 import abc
-#import liberty
-#from liberty.parser import parse_liberty
 from pyosys import libyosys as ys
-
-
-# lib_cache = {}
-
-# # Process a liberty library down to a dict of cell names and areas
-# def make_lib(fname):
-#     if fname in lib_cache:
-#         return lib_cache[fname]
-
-#     try:
-#         libr = parse_liberty(open(fname).read())
-#     except:
-#         print(f"Error parsing liberty library {fname}")
-#         return None
-    
-#     nm2area = {}
-#     for cell in libr.get_groups("cell"):
-#         name = cell.args[0]
-#         if type(cell.args[0]) == liberty.types.EscapedString:
-#             name = cell.args[0].value
-#         nm2area[name] = cell.attributes["area"]
-#     del libr
-#     lib_cache[fname] = nm2area
-#     return nm2area
 
 
 def randtag(n):
@@ -210,29 +184,29 @@ def _make_YDesign_class():
 YDesign = _make_YDesign_class()
 
 
-# This is the user visible class.  We will save here the design file, the
+# This is the user visible class.  We will save here the design files, the
 # liberty file, sdc info, etc
 class CDesign(YDesign):
-    def __init__(self, design_file="", liberty_file=""):
+    def __init__(self, design_files=[], liberty_file=""):
         super().__init__()
-        self.design_file = design_file
-        if design_file != "":
-            if not os.path.exists(design_file):
-                print(f"ERROR: file {design_file} does not exist!")
-                self.design_file = ""
-            else:
-                base, ext = os.path.splitext(design_file)
-                self.name = base
-                if ext == ".v":
-                    self.read_verilog(design_file)
-                elif ext == ".rtlil":
-                    self.read_rtlil(design_file)
-                elif ext == ".blif":
-                    self.read_blif(design_file)
-                elif ext == ".aiger":
-                    self.read_aiger(design_file)
+        self.design_files = design_files
+        if design_files:
+            for dfile in design_files:
+                if not os.path.exists(design_file):
+                    print(f"ERROR: file {dfile} does not exist!")
                 else:
-                    print("Unknown design file type")
+                    base, ext = os.path.splitext(dfile)
+                    self.name = base
+                    if ext == ".v":
+                        self.read_verilog(dfile)
+                    elif ext == ".rtlil":
+                        self.read_rtlil(dfile)
+                    elif ext == ".blif":
+                       self.read_blif(dfile)
+                    elif ext == ".aiger":
+                       self.read_aiger(dfile)
+                    else:
+                        print("Unknown design file type")
 
         self.liberty = liberty_file
         self.libinfo = None

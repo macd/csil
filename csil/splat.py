@@ -38,6 +38,7 @@ util_scripts = {
 class Abc_scatter:
     def __init__(self,
                  libr = "/home/macd/libs/sky130_fd_sc_hs__tt_025C_1v80.lib",
+                 constr = "/home/macd/libs/abc.constr",
                  iterations=5,  # generally use 5
                  scripts=scripts,
                  util_scripts=util_scripts
@@ -48,6 +49,11 @@ class Abc_scatter:
         else:
             print(f"Problem reading library {libr}")
 
+        if self.cmd(f"read_constr {constr}")[0] == 0:
+            print(f"Read constraint file {constr}")
+        else:
+            print(f"Problem reading constraint file {constr}")
+            
         self.iterations = iterations
         self.scripts = scripts
         self.util_scripts = util_scripts
@@ -157,7 +163,9 @@ def splat_one(infile, libr="/home/macd/libs/sky130_fd_sc_hs__tt_025C_1v80.lib"):
 # each "input.blif" file in each subdirectory in abc_topdir.  The leaves all
 # the produced blif's (# of scripts) * (# of iterations) in the directories
 # and also leaves a file named "results.csv" which has all the optimization
-# results (area, delay) for each blif
+# results (area, delay) for each blif.  This is designed to be used with the
+# Yosys plugin "orlo" that creates more durable sub directories for the
+# intermediate designs.
 def splat(abc_topdir=None):
     mdirs = [os.path.abspath(dr) if os.path.isdir(dr) else None for dr in glob(f"./{abc_topdir}/*")]
     olddir = os.getcwd()

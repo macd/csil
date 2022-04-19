@@ -1,3 +1,5 @@
+# don't require folks to download from liberty (at least not yet)
+'''
 import liberty
 from liberty.parser import parse_liberty
 
@@ -24,3 +26,4 @@ def make_lib(fname):
     lib_cache[fname] = nm2area
     return nm2area
 
+'''

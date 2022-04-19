@@ -24,7 +24,9 @@ name = "csil"
 
 __version__ = "0.0.1"
 
-from .liberty import make_lib
+# Not used so don't require folks to download from Codeberg
+#from .liberty import make_lib
+
 from .cdesign import CDesign
-from .utils import plt_csv, iselect
+from .utils import plt_csv, impl_select, ImplMode
 from .splat import splat_one, splat, dump_script
